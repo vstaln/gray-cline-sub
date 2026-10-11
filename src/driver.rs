@@ -98,7 +98,7 @@ impl Driver for ClineDriver {
         session_id: &str,
         session_new_result: &Value,
         model: &str,
-        _effort: Option<&str>,
+        effort: Option<&str>,
         overrides: &[(String, String)],
     ) -> Result<(), String> {
         if let Err(e) = client.set_model(session_id, model, Value::Null) {
@@ -106,13 +106,13 @@ impl Driver for ClineDriver {
                 // set_model may not exist on this build — fall back to a
                 // model-shaped configOption from session/new.
                 if set_model_config_option(client, session_id, session_new_result, model) {
-                    return apply_overrides(client, session_id, session_new_result, overrides);
+                    return apply_overrides(client, session_id, session_new_result, effort, overrides);
                 }
                 return Err(format!("unknown cline model `{model}`"));
             }
             return Err(format!("cline set_model: {e}"));
         }
-        apply_overrides(client, session_id, session_new_result, overrides)
+        apply_overrides(client, session_id, session_new_result, effort, overrides)
     }
 }
 
@@ -120,6 +120,7 @@ fn apply_overrides(
     client: &mut AcpClient,
     session_id: &str,
     new_result: &Value,
+    effort: Option<&str>,
     overrides: &[(String, String)],
 ) -> Result<(), String> {
     for (key, value) in overrides {
@@ -127,6 +128,13 @@ fn apply_overrides(
             continue;
         };
         let _ = client.set_config_option(session_id, &option_id, json!(value));
+    }
+    if let Some(e) = effort {
+        if !overrides.iter().any(|(k, _)| k == "effort") {
+            if let Some(option_id) = find_config_option(new_result, "effort") {
+                let _ = client.set_config_option(session_id, &option_id, json!(e));
+            }
+        }
     }
     Ok(())
 }
