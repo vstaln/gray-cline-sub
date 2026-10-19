@@ -111,25 +111,48 @@ pub fn acp_argv() -> Vec<String> {
 /// How long `cline auth` may need for a browser sign-in.
 pub const LOGIN_TIMEOUT: Duration = Duration::from_secs(900);
 
+/// Candidate file names: `name` itself plus each PATHEXT extension on
+/// Windows, where the executable bit doesn't exist.
+#[cfg(windows)]
+fn candidate_names(name: &str) -> Vec<String> {
+    let mut names = vec![name.to_string()];
+    let pathext = std::env::var("PATHEXT").unwrap_or_else(|_| ".COM;.EXE;.BAT;.CMD".to_string());
+    names.extend(
+        pathext
+            .split(';')
+            .map(str::trim)
+            .filter(|e| !e.is_empty())
+            .map(|e| format!("{name}{e}")),
+    );
+    names
+}
+
+#[cfg(not(windows))]
+fn candidate_names(name: &str) -> Vec<String> {
+    vec![name.to_string()]
+}
+
 /// PATH lookup for an executable name (no new deps).
 fn which_on_path(name: &str) -> Option<String> {
-    let path = std::env::var("PATH").ok()?;
-    for dir in path.split(':') {
-        let candidate = format!("{dir}/{name}");
-        if std::fs::metadata(&candidate)
-            .map(|m| m.is_file())
-            .unwrap_or(false)
-        {
+    let path = std::env::var_os("PATH")?;
+    let names = candidate_names(name);
+    for dir in std::env::split_paths(&path) {
+        for n in &names {
+            let candidate = dir.join(n);
+            let Ok(m) = std::fs::metadata(&candidate) else {
+                continue;
+            };
+            if !m.is_file() {
+                continue;
+            }
             #[cfg(unix)]
             {
                 use std::os::unix::fs::PermissionsExt;
-                if let Ok(m) = std::fs::metadata(&candidate) {
-                    if m.permissions().mode() & 0o111 == 0 {
-                        continue;
-                    }
+                if m.permissions().mode() & 0o111 == 0 {
+                    continue;
                 }
             }
-            return Some(candidate);
+            return Some(candidate.to_string_lossy().into_owned());
         }
     }
     None
