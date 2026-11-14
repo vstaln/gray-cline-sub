@@ -39,7 +39,7 @@ fn manifest() -> Value {
                 "authorization": {"kind": "bearer", "secret_name": "relay_token"},
             },
         }],
-        "description": "drive",
+        "description": "drive the cline CLI as a subagent",
         "commands": ["/cline"],
     })
 }
