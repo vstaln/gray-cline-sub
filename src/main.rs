@@ -39,6 +39,7 @@ fn manifest() -> Value {
                 "authorization": {"kind": "bearer", "secret_name": "relay_token"},
             },
         }],
+        "description": "drive",
         "commands": ["/cline"],
     })
 }
