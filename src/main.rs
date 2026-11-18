@@ -41,6 +41,7 @@ fn manifest() -> Value {
         }],
         "description": "drive the cline CLI as a subagent",
         "commands": ["/cline"],
+        "command_descriptions": {"/cline": "switch to Cline models"},
     })
 }
 
