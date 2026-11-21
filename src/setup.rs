@@ -90,7 +90,11 @@ pub fn logged_in() -> Option<Value> {
 fn extract_email(text: &str) -> Option<String> {
     text.split_whitespace()
         .find(|w| w.contains('@') && w.contains('.'))
-        .map(|w| w.trim_matches(|c: char| !c.is_alphanumeric() && c != '@' && c != '.' && c != '-' && c != '_'))
+        .map(|w| {
+            w.trim_matches(|c: char| {
+                !c.is_alphanumeric() && c != '@' && c != '.' && c != '-' && c != '_'
+            })
+        })
         .map(str::to_string)
 }
 

@@ -4,7 +4,7 @@
 //! auth`, `cline config`) publishes no usage or quota counter. The card
 //! reports the connection honestly with no fabricated windows.
 
-use serde_json::{Value, json};
+use serde_json::{json, Value};
 
 use crate::setup;
 

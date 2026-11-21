@@ -106,7 +106,13 @@ impl Driver for ClineDriver {
                 // set_model may not exist on this build — fall back to a
                 // model-shaped configOption from session/new.
                 if set_model_config_option(client, session_id, session_new_result, model) {
-                    return apply_overrides(client, session_id, session_new_result, effort, overrides);
+                    return apply_overrides(
+                        client,
+                        session_id,
+                        session_new_result,
+                        effort,
+                        overrides,
+                    );
                 }
                 return Err(format!("unknown cline model `{model}`"));
             }
@@ -165,9 +171,7 @@ fn find_config_option(new_result: &Value, key: &str) -> Option<String> {
             let id_l = id.to_lowercase();
             let name_l = name.to_lowercase();
             match want.as_str() {
-                "model" => {
-                    id_l.contains("model") || name_l.contains("model")
-                }
+                "model" => id_l.contains("model") || name_l.contains("model"),
                 "effort" => {
                     ["effort", "reasoning_effort", "reasoning", "thought_level"]
                         .contains(&id_l.as_str())
