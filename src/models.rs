@@ -40,8 +40,16 @@ pub fn list_available() -> Option<Vec<Value>> {
     // configOptions: a "model" picker whose options are the catalog.
     if let Some(opts) = sess.get("configOptions").and_then(Value::as_array) {
         for o in opts {
-            let id = o.get("id").and_then(Value::as_str).unwrap_or("").to_lowercase();
-            let name = o.get("name").and_then(Value::as_str).unwrap_or("").to_lowercase();
+            let id = o
+                .get("id")
+                .and_then(Value::as_str)
+                .unwrap_or("")
+                .to_lowercase();
+            let name = o
+                .get("name")
+                .and_then(Value::as_str)
+                .unwrap_or("")
+                .to_lowercase();
             if !id.contains("model") && !name.contains("model") {
                 continue;
             }

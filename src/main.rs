@@ -12,7 +12,7 @@ use std::sync::atomic::AtomicBool;
 use std::sync::{Arc, Mutex};
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use cline_sub::{driver::ClineDriver, models, usage, setup};
+use cline_sub::{driver::ClineDriver, models, setup, usage};
 
 const PROVIDER_ID: &str = "cline";
 const AUTH_CLI: &str = "cline-login";
@@ -88,7 +88,10 @@ fn now_secs() -> u64 {
 }
 
 fn auth_start(ops: &Ops, params: &Value) -> Result<Value, RpcError> {
-    let _method = params.get("auth_method").and_then(Value::as_str).unwrap_or_default();
+    let _method = params
+        .get("auth_method")
+        .and_then(Value::as_str)
+        .unwrap_or_default();
     let bin = setup::resolve_command().ok_or_else(|| unavailable(setup::INSTALL_HINT))?;
     if setup::logged_in().is_some() {
         return Ok(json!({
@@ -145,7 +148,10 @@ fn auth_start(ops: &Ops, params: &Value) -> Result<Value, RpcError> {
 }
 
 fn auth_poll(ops: &Ops, params: &Value) -> Result<Value, RpcError> {
-    let op_id = params.get("operation_id").and_then(Value::as_str).unwrap_or_default();
+    let op_id = params
+        .get("operation_id")
+        .and_then(Value::as_str)
+        .unwrap_or_default();
     if op_id.is_empty() {
         return Ok(match setup::logged_in() {
             Some(info) => json!({"state": "completed", "credential": login_material(&info)}),
@@ -189,7 +195,10 @@ fn auth_poll(ops: &Ops, params: &Value) -> Result<Value, RpcError> {
 }
 
 fn auth_cancel(ops: &Ops, params: &Value) -> Result<Value, RpcError> {
-    let op_id = params.get("operation_id").and_then(Value::as_str).unwrap_or_default();
+    let op_id = params
+        .get("operation_id")
+        .and_then(Value::as_str)
+        .unwrap_or_default();
     if let Some(mut op) = ops.lock().unwrap().remove(op_id) {
         if let Some(mut c) = op.child.take() {
             let _ = c.kill();
@@ -264,23 +273,24 @@ fn provider_models(_params: &Value) -> Result<Value, RpcError> {
     }))
 }
 
-fn provider_chat(
-    intents: &Intents,
-    pool: &Arc<Pool>,
-    params: &Value,
-) -> Result<Value, RpcError> {
-    let provider = params.get("provider").and_then(Value::as_str).unwrap_or_default();
+fn provider_chat(intents: &Intents, pool: &Arc<Pool>, params: &Value) -> Result<Value, RpcError> {
+    let provider = params
+        .get("provider")
+        .and_then(Value::as_str)
+        .unwrap_or_default();
     if provider != PROVIDER_ID {
         return Err(RpcError::Protocol("unknown provider".into()));
     }
     gate_auth()?;
-    let model = params.get("model").and_then(Value::as_str).unwrap_or_default();
+    let model = params
+        .get("model")
+        .and_then(Value::as_str)
+        .unwrap_or_default();
     let pool2 = pool.clone();
-    let turn: TurnFn = Arc::new(move |raw: &[u8], cancel: &AtomicBool| {
-        session::run_turn(&pool2, raw, cancel)
-    });
-    let (relay_url, relay_token) = relay::mint_turn(intents, model, turn, TOKEN_PREFIX)
-        .map_err(unavailable)?;
+    let turn: TurnFn =
+        Arc::new(move |raw: &[u8], cancel: &AtomicBool| session::run_turn(&pool2, raw, cancel));
+    let (relay_url, relay_token) =
+        relay::mint_turn(intents, model, turn, TOKEN_PREFIX).map_err(unavailable)?;
     Ok(json!({
         "relay_url": relay_url,
         "relay_token": relay_token,
@@ -288,14 +298,21 @@ fn provider_chat(
 }
 
 fn command_run(params: &Value) -> Result<Value, RpcError> {
-    let name = params.get("name").and_then(Value::as_str).unwrap_or_default();
+    let name = params
+        .get("name")
+        .and_then(Value::as_str)
+        .unwrap_or_default();
     if name != "/cline" {
         return Err(RpcError::Protocol(format!("unknown command {name}")));
     }
     let argv: Vec<String> = params
         .get("argv")
         .and_then(Value::as_array)
-        .map(|a| a.iter().filter_map(|v| v.as_str().map(str::to_string)).collect())
+        .map(|a| {
+            a.iter()
+                .filter_map(|v| v.as_str().map(str::to_string))
+                .collect()
+        })
         .unwrap_or_default();
     match argv.first().map(String::as_str).unwrap_or("") {
         "" => Ok(json!({})), // bare /cline → provider-login shortcut
@@ -311,7 +328,9 @@ fn command_run(params: &Value) -> Result<Value, RpcError> {
                     setup::cli_version().unwrap_or_else(|| "?".into()),
                 ),
                 None => match setup::cli_version() {
-                    Some(v) => format!("Cline CLI {v} present but not signed in — run `cline auth`"),
+                    Some(v) => {
+                        format!("Cline CLI {v} present but not signed in — run `cline auth`")
+                    }
                     None => setup::INSTALL_HINT.into(),
                 },
             };
@@ -378,7 +397,11 @@ fn main() {
             continue;
         };
         let id = req.get("id").cloned().unwrap_or(Value::Null);
-        let method = req.get("method").and_then(Value::as_str).unwrap_or_default().to_string();
+        let method = req
+            .get("method")
+            .and_then(Value::as_str)
+            .unwrap_or_default()
+            .to_string();
         let params = req.get("params").cloned().unwrap_or_else(|| json!({}));
         let result = dispatch(&method, &params, &ops, &intents, &pool);
         if !write_response(&mut out, id, result) {
