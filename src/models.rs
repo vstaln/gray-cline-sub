@@ -1,8 +1,8 @@
 //! Model catalog: probe a throwaway `cline --acp` child — session/new may
 //! carry the picker (`models` / `availableModels` / a model configOption).
 
-use acp_bridge::acp::{AcpClient, SpawnSpec};
-use acp_bridge::session::Driver;
+use gray_acp::acp::{AcpClient, SpawnSpec};
+use gray_acp::session::Driver;
 use serde_json::{json, Value};
 
 use crate::driver::ClineDriver;

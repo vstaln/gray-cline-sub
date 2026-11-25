@@ -1,7 +1,7 @@
 //! cline ACP driver: wire-level quirks for the shared bridge.
 
-use acp_bridge::acp::{AcpClient, SpawnSpec};
-use acp_bridge::session::{Driver, PermissionDecision};
+use gray_acp::acp::{AcpClient, SpawnSpec};
+use gray_acp::session::{Driver, PermissionDecision};
 use serde_json::{json, Value};
 
 pub struct ClineDriver;

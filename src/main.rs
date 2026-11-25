@@ -2,8 +2,8 @@
 //! `cline --acp` subprocess. The vendor's own binary does the talking;
 //! the sidecar is a model, not an agent runtime.
 
-use acp_bridge::relay::{self, Intents, TurnFn};
-use acp_bridge::session::{self, Pool};
+use gray_acp::relay::{self, Intents, TurnFn};
+use gray_acp::session::{self, Pool};
 use serde_json::{json, Value};
 use std::collections::HashMap;
 use std::io::{BufRead, BufReader, Write};
